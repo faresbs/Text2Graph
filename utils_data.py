@@ -192,6 +192,7 @@ if __name__ == '__main__':
 			for line in f.readlines():
 				common.append(line.replace('\n', ''))
 
+	## TO DO: save words with their indices !!!
 	table = lookup(common)
 
 	keep(common, table)
