@@ -3,16 +3,17 @@ utils data helper scripts for dataset 'debates'
 """
 import os
 import re
-from collections import Counter
 import csv
 import copy
+from collections import Counter
+from collections import OrderedDict
 
 #Dictionary to save pairings alongside their weights
 #This is a global variable
 dic = {}
 
 #Tranform to lookup table, elements to int
-def lookup(l):
+def lookup(l, sort=True):
 
 	#Get rid of duplicates if there is
 	result = []
@@ -30,12 +31,54 @@ def lookup(l):
 		table.update({element: i})
 		i += 1
 
+	if(sort):
+		#New ordered dict
+		new_table = OrderedDict()
+		#Loop over dic w/ sorted values 
+		for key, value in sorted(table.items(), key=lambda item: item[1]):
+			new_table.update({key: value})
+
+		table = new_table
+
+	#Save lookup table
+	with open('lookup.txt', 'w') as out:
+		writer = csv.writer(out, delimiter =' ')
+		writer.writerow(["Id", "Word"])
+		#Loop over the nodes
+		for i, (word,key) in enumerate(table.items()):
+			#print(word)
+			#print(key)
+			row = [key, word]
+			writer.writerows([row])
+
 	return table
 
-#retrive common words in text
-def common(corpus, k=100):
 
-	with open(corpus, "r", encoding="utf-8") as file:
+#TO DO: cross check for every debate common words with other debate: remove common words and leave unique words
+
+def cross_words(common):
+	l = np.arange(len(debates))
+	#Loop over the common words of each debate
+	for d in range(len(debates)):
+		current ='data/data/common_words/'+str(d)+'.txt'
+		#Compare with other debate common words
+		#Loop over the rest of debates
+		rest = np.delete(l, d) 
+		for q in rest:
+			common = []
+			#Read common words
+			with open(current, 'r') as f:
+				for line in f.readlines():
+					common.append(line.replace('\n', ''))
+
+
+
+
+
+#retrive common words in text
+def common(corpus, k=500):
+
+	with open(corpus, "r") as file:
 
 		data = file.read()
 		#print(data)
@@ -50,7 +93,7 @@ def common(corpus, k=100):
 		# input values and their respective counts. 
 		most_occur = counter.most_common(k) 
 		  
-		print(most_occur) 
+		#print(most_occur) 
 
 	return most_occur
 
@@ -107,6 +150,7 @@ def edge(line, common):
 #Keep lines that has 2 common words
 #Put Weights of an edge connecting two named entities
 #Number of times entities appear together in our dataset is the weight
+
 def keep(common, table):
 	
 	with open('final_corpus.csv', 'w') as writeFile:
@@ -192,8 +236,7 @@ if __name__ == '__main__':
 			for line in f.readlines():
 				common.append(line.replace('\n', ''))
 
-	## TO DO: save words with their indices !!!
-	table = lookup(common)
+	table = lookup(common, True)
 
 	keep(common, table)
 		

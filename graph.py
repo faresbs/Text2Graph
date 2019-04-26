@@ -20,21 +20,28 @@ def kmeans(x, y, n_c = 6):
 	#Use representation context vector (128) to cluster the nodes
 	kmeans = KMeans(n_clusters=n_c, random_state=0).fit(x)
 	clusters = kmeans.predict(x)
-	#print(clusters)
-	#print(clusters.shape)
+
 	return clusters
 
 #prepare data for gephi for graph viz
-def prepare(y, clusters, clustered=True):
+def prepare(y, clusters, clustered=True, sort=True):
 
 	#1 Step: Prepare a node sheet
 	if(clustered):
 		#Stack id of node w/ is cluster
 		a = np.zeros([y.shape[0], 2], dtype=int)
+
+		if(sort):
+			#Sort clusters according to y id words
+			clusters = [x for _,x in sorted(zip(y,clusters))]
+
+		y.sort()
+
 		a[:, 0] = y
 		a[:, 1] = clusters
 		#print(a.shape) #(69, 2)
 
+		#Save words w/ their clusters
 		with open('nodes.csv', 'w') as out:
 		    writer = csv.writer(out, delimiter =' ')
 		    writer.writerow(["Id", "Cluster"])
@@ -42,6 +49,7 @@ def prepare(y, clusters, clustered=True):
 		    for i in range(a.shape[0]):
 		    	row = a[i, :]
 		        writer.writerows([row])
+
 
 	#2 step: Prepare edge sheet
 	filename = 'final_corpus.csv'
@@ -63,4 +71,4 @@ if __name__ == '__main__':
 	filename = 'emb'
 	x, y = read(filename)
 	clusters = kmeans(x, y)
-	prepare(y, clusters, True)
+	prepare(y, clusters, True, True)
